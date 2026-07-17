@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Laporan Keuangan Kas NU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nu: '#0F5132',
+                        emas: '#DAA520',
+                        abu: '#4B5563',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .file-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .tab-btn.active {
+            background: #0F5132;
+            color: white;
+        }
+        .preview-area {
+            display: none;
+        }
+        .preview-area.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Judul -->
+        <header class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold text-nu">GALERI LAPORAN KEUANGAN</h1>
+            <h2 class="text-lg text-abu mt-2">NU • LAZISNU • UMUM • LTMNU • PEMBANGUNAN MASJID • LP. MA'ARIF NU • REKAPITULASI</h2>
+            <p class="text-sm text-gray-500 mt-2">Laporan dapat dilihat dan diunduh oleh semua pihak</p>
+        </header>
+
+        <!-- Menu Tab -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8">
+            <button class="tab-btn active px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="semua">Semua Laporan</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="kas-nu">KAS NU</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="lazisnu">KAS LAZISNU</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="kas-umum">KAS UMUM</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="ltmnu">KAS LTMNU</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="pembangunan">KAS PEMBANGUNAN MASJID</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="maarif">KAS LP. MA'ARIF NU</button>
+            <button class="tab-btn px-4 py-2 rounded-full text-sm font-medium border border-nu text-nu transition-all" data-tab="rekap">REKAPITULASI</button>
+        </div>
+
+        <!-- Area Unggah Laporan -->
+        <div class="bg-white rounded-xl shadow p-5 mb-8 border-l-4 border-emas">
+            <h3 class="text-lg font-bold text-nu mb-3"><i class="fa-solid fa-cloud-upload mr-2"></i>Unggah Laporan Baru (PDF/JPG)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Pilih Jenis Laporan</label>
+                    <select id="jenisLaporan" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="kas-nu">KAS NU</option>
+                        <option value="lazisnu">KAS LAZISNU</option>
+                        <option value="kas-umum">KAS UMUM</option>
+                        <option value="ltmnu">KAS LTMNU</option>
+                        <option value="pembangunan">KAS PEMBANGUNAN MASJID</option>
+                        <option value="maarif">KAS LP. MA'ARIF NU</option>
+                        <option value="rekap">REKAPITULASI</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Periode Laporan</label>
+                    <input type="text" id="periode" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Contoh: Juli 2026">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Pilih File (PDF/JPG)</label>
+                    <input type="file" id="fileLaporan" accept=".pdf,.jpg,.jpeg,.png" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+            </div>
+            <button onclick="unggahLaporan()" class="bg-nu text-white px-5 py-2 rounded-lg font-medium hover:bg-nu/90 transition-all">
+                <i class="fa-solid fa-upload mr-2"></i>Simpan Laporan
+            </button>
+        </div>
+
+        <!-- Daftar Laporan -->
+        <div id="daftarLaporan" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="col-span-full text-center py-16 text-gray-500">
+                <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                <p>Belum ada laporan yang diunggah. Silakan unggah laporan terlebih dahulu.</p>
+            </div>
+        </div>
+
+        <!-- Area Pratinjau File -->
+        <div id="modalPreview" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-4 border-b">
+                    <h4 id="judulPreview" class="font-bold text-nu"></h4>
+                    <button onclick="tutupPreview()" class="text-gray-500 hover:text-red-500 text-xl">&times;</button>
+                </div>
+                <div id="isiPreview" class="p-4 overflow-auto max-h-[calc(90vh-80px)]"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simpan data laporan di penyimpanan lokal (bisa dipindah ke server untuk akses umum)
+        let daftarLaporan = JSON.parse(localStorage.getItem('laporanKasNU')) || [];
+
+        // Tampilkan daftar laporan sesuai tab yang dipilih
+        function tampilkanLaporan(filter = 'semua') {
+            const wadah = document.getElementById('daftarLaporan');
+            const terfilter = filter === 'semua' ? daftarLaporan : daftarLaporan.filter(lap => lap.jenis === filter);
+
+            if (terfilter.length === 0) {
+                wadah.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-gray-500">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                        <p>Belum ada laporan untuk kategori ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            wadah.innerHTML = '';
+            terfilter.forEach((lap, index) => {
+                const ikon = lap.tipe === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-green-500';
+                wadah.innerHTML += `
+                    <div class="file-card bg-white rounded-xl shadow p-5 transition-all duration-300 cursor-pointer" onclick="bukaPreview(${index})">
+                        <div class="flex items-center gap-3 mb-3">
+                            <i class="fa-solid ${ikon} text-3xl"></i>
+                            <div>
+                                <h4 class="font-bold text-nu">${lap.namaJenis}</h4>
+                                <p class="text-sm text-gray-500">Periode: ${lap.periode}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 mb-4">
+                            <p>Diunggah: ${lap.tanggalUnggah}</p>
+                            <p>Ukuran: ${lap.ukuran}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-nu text-white py-2 rounded-lg text-sm hover:bg-nu/90">
+                                <i class="fa-solid fa-eye mr-1"></i>Lihat
+                            </button>
+                            <a href="${lap.url}" download="${lap.namaJenis} - ${lap.periode}.${lap.tipe}" class="flex-1 bg-gray-100 text-nu py-2 rounded-lg text-sm text-center hover:bg-gray-200">
+                                <i class="fa-solid fa-download mr-1"></i>Unduh
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Unggah laporan baru
+        function unggahLaporan() {
+            const jenis = document.getElementById('jenisLaporan').value;
+            const periode = document.getElementById('periode').value.trim();
+            const file = document.getElementById('fileLaporan').files[0];
+
+            if (!periode || !file) {
+                alert('Lengkapi periode dan pilih file laporan!');
+                return;
+            }
+
+            // Baca file menjadi URL
+            const pembaca = new FileReader();
+            pembaca.onload = function(e) {
+                const urlFile = e.target.result;
+                const namaJenis = document.getElementById('jenisLaporan').options[document.getElementById('jenisLaporan').selectedIndex].text;
+                const tipeFile = file.name.split('.').pop().toLowerCase();
+                const ukuran = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+                const laporanBaru = {
+                    jenis: jenis,
+                    namaJenis: namaJenis,
+                    periode: periode,
+                    url: urlFile,
+                    tipe: tipeFile,
+                    ukuran: ukuran,
+                    tanggalUnggah: new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})
+                };
+
+                daftarLaporan.unshift(laporanBaru);
+                localStorage.setItem('laporanKasNU', JSON.stringify(daftarLaporan));
+                tampilkanLaporan();
+
+                // Reset form
+                document.getElementById('periode').value = '';
+                document.getElementById('fileLaporan').value = '';
+                alert('Laporan berhasil diunggah!');
+            };
+            pembaca.readAsDataURL(file);
+        }
+
+        // Buka pratinjau laporan
+        function bukaPreview(index) {
+            const lap = daftarLaporan[index];
+            document.getElementById('judulPreview').textContent = `${lap.namaJenis} - ${lap.periode}`;
+            const wadah = document.getElementById('isiPreview');
+            
+            if (lap.tipe === 'pdf') {
+                wadah.innerHTML = `<embed src="${lap.url}" type="application/pdf" class="w-full h-[70vh] rounded-lg">`;
+            } else {
+                wadah.innerHTML = `<img src="${lap.url}" alt="${lap.namaJenis}" class="max-w-full rounded-lg mx-auto">`;
+            }
+            document.getElementById('modalPreview').classList.remove('hidden');
+        }
+
+        // Tutup pratinjau
+        function tutupPreview() {
+            document.getElementById('modalPreview').classList.add('hidden');
+        }
+
+        // Pengaturan Tab
+        document.querySelectorAll('.tab-btn').forEach(tombol => {
+            tombol.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                tombol.classList.add('active');
+                tampilkanLaporan(tombol.dataset.tab);
+            });
+        });
+
+        // Tampilkan laporan saat halaman dibuka
+        tampilkanLaporan();
+    </script>
+</body>
+</html>
